@@ -1,0 +1,9 @@
+python run.py \
+    --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs \
+    --hiddendim=256 \
+    --outdim=8 \
+    --epochs=500 \
+    --no-save \
+    --feature=maccs \
+    --no-save
+

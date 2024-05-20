@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   - blas=1.0=openblas
+  - bottleneck=1.3.7=py39hbda83bc_0
   - brotli-python=1.0.9=py39h313beb8_8
   - ca-certificates=2024.3.11=hca03da5_0
   - certifi=2024.2.2=py39hca03da5_0
@@ -35,19 +36,25 @@ dependencies:
   - mpmath=1.3.0=py39hca03da5_0
   - ncurses=6.4=h313beb8_0
   - networkx=3.1=py39hca03da5_0
+  - numexpr=2.8.7=py39hecc3335_0
   - numpy=1.26.4=py39h3b2db8e_0
   - numpy-base=1.26.4=py39ha9811e2_0
   - openjpeg=2.3.0=h7a6adac_2
   - openssl=3.0.13=h1a28f6b_1
+  - pandas=2.2.1=py39h313beb8_0
   - pillow=10.3.0=py39h80987f9_0
   - pip=24.0=py39hca03da5_0
   - pysocks=1.7.1=py39hca03da5_0
   - python=3.9.19=hb885b13_1
+  - python-dateutil=2.9.0post0=py39hca03da5_0
+  - python-tzdata=2023.3=pyhd3eb1b0_0
   - pytorch=2.3.0=py3.9_0
+  - pytz=2024.1=py39hca03da5_0
   - pyyaml=6.0.1=py39h80987f9_0
   - readline=8.2=h1a28f6b_0
   - requests=2.31.0=py39hca03da5_1
   - setuptools=69.5.1=py39hca03da5_0
+  - six=1.16.0=pyhd3eb1b0_1
   - sqlite=3.45.3=h80987f9_0
   - sympy=1.12=py39hca03da5_0
   - tk=8.6.14=h6ba3021_0
@@ -81,8 +88,10 @@ dependencies:
     - pathspec==0.12.1
     - platformdirs==4.2.2
     - psutil==5.9.8
+    - pubchempy==1.0.4
     - pylint==3.2.2
     - pyparsing==3.1.2
+    - rdkit==2023.9.6
     - scikit-learn==1.4.2
     - scipy==1.13.0
     - threadpoolctl==3.5.0
