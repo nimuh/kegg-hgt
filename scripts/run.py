@@ -23,9 +23,9 @@ seed_everything(42)
 def main():
     args = parse_cmd_args()
     print(f"SAVE ?: {args.save}")
-    #print(f"metabolite dataset: {args.met_data}")
-    #print(f"metabolite metadata: {args.metadata}")
-    #print(f"metabolite dataset info: {args.data_info}")
+    # print(f"metabolite dataset: {args.met_data}")
+    # print(f"metabolite metadata: {args.metadata}")
+    # print(f"metabolite dataset info: {args.data_info}")
 
     graph_filename = args.graph_file
 
