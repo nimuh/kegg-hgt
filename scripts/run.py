@@ -21,8 +21,11 @@ seed_everything(42)
 
 # TODO
 # add second data type to the graph
-# implement HGT model 
+# add compounds connected to KOs by reaction
+# set KOs to be average of protein embeddings from ESM
+# implement HGT model
 # measure link prediction performance?
+
 
 def main():
     args = parse_cmd_args()
@@ -39,6 +42,7 @@ def main():
         val_frac=0.20,
         test_frac=0.20,
         feat_name=args.feature,
+        # add_node_cid=5312377,
     )
 
     out_channels = args.outdim
@@ -63,6 +67,11 @@ def main():
         )
 
 
+"""
+CMD line parser
+"""
+
+
 def parse_cmd_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--graph_file")
@@ -78,6 +87,11 @@ def parse_cmd_args():
     return args
 
 
+"""
+Training logic for GNN
+"""
+
+
 def train(model, g_train, optimizer):
     model.train()
     optimizer.zero_grad()
@@ -90,6 +104,11 @@ def train(model, g_train, optimizer):
     loss.backward()
     optimizer.step()
     return float(loss)
+
+
+"""
+To predict edges of newly added node(s) to graph
+"""
 
 
 def predict(model, g, inf_g):
@@ -109,7 +128,51 @@ def predict(model, g, inf_g):
         print(k, v)
 
 
-def process_kegg_graph(filename, val_frac, test_frac, feat_name):
+"""
+General function to query pubchem with given CID
+"""
+
+
+def query_pubchem(cid):
+    compound_info = pcp.Compound.from_cid(cid)
+    cid = int(compound_info.cid)
+    s = compound_info.canonical_smiles
+    print(f"got cid: {cid}")
+    rdk_mol = Chem.MolFromSmiles(s)
+    fpt = MACCSkeys.GenMACCSKeys(rdk_mol).ToBitString()
+    print(f"got fpt: {fpt}")
+    return fpt, str(cid)
+
+
+"""
+For adding any new nodes to the graph for inference
+"""
+
+
+def add_node_to_graph(g, pc_cid, feat_name):
+    fpt, cid = query_pubchem(pc_cid)
+    new_g = nx.Graph()
+    new_g.add_edges_from(g.edges())
+    new_g.add_nodes_from(g.nodes(data=True))
+    new_g.add_node(cid)
+    new_g.nodes[cid]["cid"] = cid
+    new_g.nodes[cid]["maccs"] = fpt
+    new_g.nodes[cid]["kegg_cpd"] = "N/A"
+    new_g = from_networkx(new_g)
+    node_features_str = list(map(list, new_g[feat_name]))
+    new_node_features = []
+    for node_feature in node_features_str:
+        new_node_features.append(torch.Tensor(list(map(int, node_feature))))
+    new_g.x = torch.stack(new_node_features)
+    return new_g
+
+
+"""
+For processing and loading in KG for training and validation
+"""
+
+
+def process_kegg_graph(filename, val_frac, test_frac, feat_name, add_node_cid=None):
     nx_file = filename
     split_transform = RandomLinkSplit(
         num_val=val_frac,
@@ -119,40 +182,14 @@ def process_kegg_graph(filename, val_frac, test_frac, feat_name):
         is_undirected=True,
     )
 
-    print("reading in file {}".format(nx_file))
+    print(f"reading in file {nx_file}")
     g = nx.read_graphml(nx_file)
-    print(g.nodes["pubchem:3303"])
+    new_g = None
+    if add_node_cid:
+        new_g = add_node_to_graph(g, add_node_cid, feat_name)
 
-    # this part grabs the 5D compound from pubchem and adds it to the graph
-    # TODO
-    # write general function for adding nodes to the graph
-    compound_info = pcp.Compound.from_cid(5312377)
-    cid = int(compound_info.cid)
-    s = compound_info.canonical_smiles
-    print("got cid: ", cid)
-    rdk_mol = Chem.MolFromSmiles(s)
-    fpt = MACCSkeys.GenMACCSKeys(rdk_mol).ToBitString()
-    print("got fpt: ", fpt)
-    print("# of Nodes: {}".format(len(g.nodes)))
-    print("adding node for 5D...")
-
-    g_5d = nx.Graph()
-    g_5d.add_node("5312377")
-    g_5d.nodes["5312377"]["cid"] = "5312377"
-    g_5d.nodes["5312377"]["maccs"] = fpt
-    # G.nodes['5312377']['smiles'] = s
-    g_5d.nodes["5312377"]["kegg_cpd"] = "N/A"
-    print(g_5d.nodes["5312377"])
-    g_5d = from_networkx(g_5d)
-    print("converting node features to tensors...")
-    node_features_str = list(map(list, g_5d[feat_name]))
-    new_node_features = []
-    for node_feature in node_features_str:
-        new_node_features.append(torch.Tensor(list(map(int, node_feature))))
-    g_5d.x = torch.stack(new_node_features)
-
-    print("# of Nodes: {}".format(len(g.nodes)))
-    print("# of Edges: {}".format(len(g.edges)))
+    print(f"# of Nodes: {len(g.nodes)}")
+    print(f"of Edges: {len(g.edges)}")
     g.remove_edges_from(nx.selfloop_edges(g))
     print(f"Removing self edges ... # of edges left: {len(g.edges)}")
     print()
@@ -167,7 +204,7 @@ def process_kegg_graph(filename, val_frac, test_frac, feat_name):
         new_node_features.append(torch.Tensor(list(map(int, node_feature))))
     geo_g.x = torch.stack(new_node_features)
     g_train, g_val, g_test = split_transform(geo_g)
-    return geo_g, g_train, g_val, g_test, g_5d
+    return geo_g, g_train, g_val, g_test, new_g
 
 
 if __name__ == "__main__":
