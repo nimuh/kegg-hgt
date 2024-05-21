@@ -19,14 +19,13 @@ warnings.simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 
 seed_everything(42)
 
+# TODO
+# add second data type to the graph
+# implement HGT model 
+# measure link prediction performance?
 
 def main():
     args = parse_cmd_args()
-    print(f"SAVE ?: {args.save}")
-    # print(f"metabolite dataset: {args.met_data}")
-    # print(f"metabolite metadata: {args.metadata}")
-    # print(f"metabolite dataset info: {args.data_info}")
-
     graph_filename = args.graph_file
 
     logging.basicConfig(
@@ -124,6 +123,9 @@ def process_kegg_graph(filename, val_frac, test_frac, feat_name):
     g = nx.read_graphml(nx_file)
     print(g.nodes["pubchem:3303"])
 
+    # this part grabs the 5D compound from pubchem and adds it to the graph
+    # TODO
+    # write general function for adding nodes to the graph
     compound_info = pcp.Compound.from_cid(5312377)
     cid = int(compound_info.cid)
     s = compound_info.canonical_smiles
