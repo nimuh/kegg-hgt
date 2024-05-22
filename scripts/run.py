@@ -167,6 +167,45 @@ def add_node_to_graph(g, pc_cid, feat_name):
     return new_g
 
 
+# TODO
+# map each KO in the graph to a vector that is the average over the embeddings
+# produced by ESM-2-650M
+def add_ko_embeddings(embeddings):
+
+    # for each KO in embeddings
+    # for each node in graph G
+    # if node is a KO node AND matches to current KO
+    # set feature to be embedding associated with KO
+
+    pass
+
+
+# TODO
+# add KO data type so that there are 2 node types in the graph
+# T(V) = <CPD, KO>
+# PHI(E) = <CPD, REACTS, CPD> or <> <CPD, INTERACTS, KO>
+# This way we also have 2 edges types representing compound-compound
+# relationships or compound-protein relationships
+# HGT should capture this
+def add_kegg_data_to_graph(g, type="ko"):
+
+    # grab relations from KEGG DB
+
+    # read text file so that each reaction maps to a list of KOs
+
+    # read text file so that each compound maps to a list of reactions
+
+    # iterate through nodes in graph
+    # for each compound
+    # find node with CPD ID
+    # iterate through reactions of CPD
+    # for each reaction, get associated KO
+    # add KO node
+    # add edge between CPD and KO
+
+    pass
+
+
 """
 For processing and loading in KG for training and validation
 """
