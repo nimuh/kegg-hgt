@@ -26,6 +26,10 @@ seed_everything(42)
 # implement HGT model
 # measure link prediction performance?
 
+# QUESTION: Can we extract a subset of the edges that are between compounds
+# only for testing? This way we can measure how the compound-compound link
+# prediction performance improves over the original homogeneous graph
+
 
 def main():
     args = parse_cmd_args()
@@ -187,19 +191,28 @@ def add_ko_embeddings(embeddings):
 # This way we also have 2 edges types representing compound-compound
 # relationships or compound-protein relationships
 # HGT should capture this
-def add_kegg_data_to_graph(g, type="ko"):
+def add_kegg_data_to_graph(g, relations_txt_file):
+    """
+    Given a graph g and the relations_txt_file, this function adds the new
+    relations and nodes to the graph
 
-    # grab relations from KEGG DB
+    Arguments:
+        g: Graph, could be a networkx graph or torch_geometric data type
+        relations_txt_file: text file containing edges in (entity1, entity2)
+                            format
+
+    Returns:
+        A new graph, new_g, that contains the new information from
+        relations_txt_file.
+    """
 
     # read text file so that each reaction maps to a list of KOs
+    # use hashtable to map compounds to list of reactions
+    # use hashtable to map reactions to list of KOs
 
-    # read text file so that each compound maps to a list of reactions
-
-    # iterate through nodes in graph
-    # for each compound
-    # find node with CPD ID
-    # iterate through reactions of CPD
-    # for each reaction, get associated KO
+    # iterate through nodes in graph g
+    # for each compound iterate across reactions
+    # for each reaction iterate across KOs
     # add KO node
     # add edge between CPD and KO
 
