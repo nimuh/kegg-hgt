@@ -154,6 +154,18 @@ For adding any new nodes to the graph for inference
 
 
 def add_node_to_graph(g, pc_cid, feat_name):
+    """
+    Add a compound to the KEGG KG for the compound that maps to the pc_id.
+
+    Arguments:
+        g: networkx graph or torch data
+        pc_cid: pubchem compound id used to query the pubchem database
+        feat_name: the name of the features for representing the compound
+
+    Returns:
+        networkx Graph with added compound
+    """
+
     fpt, cid = query_pubchem(pc_cid)
     new_g = nx.Graph()
     new_g.add_edges_from(g.edges())
@@ -174,7 +186,19 @@ def add_node_to_graph(g, pc_cid, feat_name):
 # TODO
 # map each KO in the graph to a vector that is the average over the embeddings
 # produced by ESM-2-650M
-def add_ko_embeddings(embeddings):
+def add_embeddings(embeddings, node_type):
+    """
+    Given a set of embeddings with their associated labels, we add them to the
+    graph.
+
+    Arguments:
+        embeddings: file containing embeddings for node type
+        node_type: string defining the type of node we want to add the
+                   embeddings for.
+
+    Returns:
+        Graph: New graph, new_g, with added embeddings.
+    """
 
     # for each KO in embeddings
     # for each node in graph G
@@ -213,7 +237,7 @@ def add_kegg_data_to_graph(g, relations_txt_file):
     # iterate through nodes in graph g
     # for each compound iterate across reactions
     # for each reaction iterate across KOs
-    # add KO node
+    # add KO node if not already in graph
     # add edge between CPD and KO
 
     pass
