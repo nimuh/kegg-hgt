@@ -71,11 +71,6 @@ def main():
         )
 
 
-"""
-CMD line parser
-"""
-
-
 def parse_cmd_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--graph_file")
@@ -91,11 +86,6 @@ def parse_cmd_args():
     return args
 
 
-"""
-Training logic for GNN
-"""
-
-
 def train(model, g_train, optimizer):
     model.train()
     optimizer.zero_grad()
@@ -108,11 +98,6 @@ def train(model, g_train, optimizer):
     loss.backward()
     optimizer.step()
     return float(loss)
-
-
-"""
-To predict edges of newly added node(s) to graph
-"""
 
 
 def predict(model, g, inf_g):
@@ -132,12 +117,17 @@ def predict(model, g, inf_g):
         print(k, v)
 
 
-"""
-General function to query pubchem with given CID
-"""
-
-
 def query_pubchem(cid):
+    """
+    For querying pubchem database with given CID
+
+    Arguments:
+        cid: compound id to query pubchem for.
+
+    Returns:
+        MACCSKey: fingerprint representing molecule
+        cid: pubchem ID as a string.
+    """
     compound_info = pcp.Compound.from_cid(cid)
     cid = int(compound_info.cid)
     s = compound_info.canonical_smiles
@@ -146,11 +136,6 @@ def query_pubchem(cid):
     fpt = MACCSkeys.GenMACCSKeys(rdk_mol).ToBitString()
     print(f"got fpt: {fpt}")
     return fpt, str(cid)
-
-
-"""
-For adding any new nodes to the graph for inference
-"""
 
 
 def add_node_to_graph(g, pc_cid, feat_name):
