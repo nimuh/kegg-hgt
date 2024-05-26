@@ -259,7 +259,7 @@ def add_kegg_data_to_graph(g, relations_txt_file_c_r, relations_txt_file_r_ko):
     for i, v_name in enumerate(g.nodes()):
         if "pubchem" in v_name:
             cpd_to_idx[v_name] = i
-            cpd_to_maccs[v_name] = list(map(int,g.nodes[v_name]['maccs']))
+            cpd_to_maccs[v_name] = list(map(int, g.nodes[v_name]["maccs"]))
             i += 1
         elif "K" in v_name:
             ko_to_idx[v_name] = j
@@ -277,28 +277,28 @@ def add_kegg_data_to_graph(g, relations_txt_file_c_r, relations_txt_file_r_ko):
         for (c, k) in g.edges()
         if "pubchem" in c and "pubchem" in k
     ]
-    
+
     maccs = torch.stack(list(map(torch.Tensor, cpd_to_maccs.values())))
     kos = torch.stack(list(map(torch.Tensor, ko_to_emb.values())))
     cpd_ko_edges = torch.Tensor(cpd_ko_edges).type(torch.int).T
     cpd_cpd_edges = torch.Tensor(cpd_cpd_edges).type(torch.int).T
     pyg_data = construct_het_graph(g, maccs, kos, cpd_cpd_edges, cpd_ko_edges)
+    print(pyg_data)
     return pyg_data
-    # print(pyg_data)
-    # print(g.nodes())
-    # print([n for n in g.neighbors("K00001")])
 
 
 # function should construct a HeteroData type for torch_geo from
 # networkx graph
-def construct_het_graph(g: nx.Graph, feat1, feat2, cpd_cpd_edges, cpd_ko_edges) -> HeteroData:
+def construct_het_graph(
+    g: nx.Graph, feat1, feat2, cpd_cpd_edges, cpd_ko_edges
+) -> HeteroData:
     print(f"construcing Het graph from {g}...")
 
     het_graph = HeteroData()
-    het_graph['cpd'] = feat1
-    het_graph['ko'] = feat2
-    het_graph['cpd', 'reacts', 'cpd'] = cpd_cpd_edges
-    het_graph['cpd', 'interacts', 'ko'] = cpd_ko_edges
+    het_graph["cpd"].x = feat1
+    het_graph["ko"].x = feat2
+    het_graph["cpd", "reacts", "cpd"].edge_index = cpd_cpd_edges
+    het_graph["cpd", "interacts", "ko"].edge_index = cpd_ko_edges
     het_graph = ToUndirected()(het_graph)
     return het_graph
 
