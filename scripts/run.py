@@ -4,6 +4,7 @@ import warnings
 import torch
 import pandas as pd
 from torch_geometric import seed_everything
+from collections import defaultdict
 from torch_geometric.nn import GAE
 from torch_geometric.transforms import RandomLinkSplit
 from torch_geometric.utils.convert import from_networkx
@@ -41,6 +42,9 @@ def main():
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
+    process_kegg_graph_het(graph_filename)
+
+    """
     geo_g, geo_g_train, geo_g_val, _, _ = process_kegg_graph(
         graph_filename,
         val_frac=0.20,
@@ -69,6 +73,7 @@ def main():
                 epoch, loss, auc, ap
             )
         )
+    """
 
 
 def parse_cmd_args():
@@ -200,13 +205,13 @@ def add_embeddings(embeddings, node_type):
 # This way we also have 2 edges types representing compound-compound
 # relationships or compound-protein relationships
 # HGT should capture this
-def add_kegg_data_to_graph(g, relations_txt_file):
+def add_kegg_data_to_graph(g, relations_txt_file_c_r, relations_txt_file_r_ko):
     """
     Given a graph g and the relations_txt_file, this function adds the new
     relations and nodes to the graph
 
     Arguments:
-        g: Graph, could be a networkx graph or torch_geometric data type
+        g: Graph, a networkx graph
         relations_txt_file: text file containing edges in (entity1, entity2)
                             format
 
@@ -215,9 +220,27 @@ def add_kegg_data_to_graph(g, relations_txt_file):
         relations_txt_file.
     """
 
+    cpd_to_r = defaultdict(list)
+    r_to_ko = defaultdict(list)
+    cpd_to_ko = defaultdict(list)
     # read text file so that each reaction maps to a list of KOs
     # use hashtable to map compounds to list of reactions
+    with open(relations_txt_file_c_r) as f:
+        for line in f.readlines():
+            rn, cpd = line.split()
+            cpd_to_r[cpd].append(rn)
+
     # use hashtable to map reactions to list of KOs
+    with open(relations_txt_file_r_ko) as f:
+        for line in f.readlines():
+            rn, ko = line.split()
+            r_to_ko[rn].append(ko.split(":")[1])
+
+    # construct cpd to ko relationships
+    for cpd in cpd_to_r:
+        for rn in cpd_to_r[cpd]:
+            for ko in r_to_ko[rn]:
+                cpd_to_ko[cpd].append(ko)
 
     # iterate through nodes in graph g
     # for each compound iterate across reactions
@@ -225,7 +248,25 @@ def add_kegg_data_to_graph(g, relations_txt_file):
     # add KO node if not already in graph
     # add edge between CPD and KO
 
-    pass
+    v_cpd = list(g.nodes())
+    for cpd in v_cpd:
+        kegg_id = g.nodes()[cpd]["kegg_cpd"]
+        for ko in cpd_to_ko[kegg_id]:
+            g.add_edge(cpd, ko)
+
+    # print(g.nodes())
+    print([n for n in g.neighbors("K00001")])
+
+
+def process_kegg_graph_het(filename):
+    g = nx.read_graphml(filename)
+    # print(f"# of Nodes: {len(g.nodes)}")
+    # print(f"of Edges: {len(g.edges)}")
+
+    add_kegg_data_to_graph(g, "../data/kegg_files/reaction", "../data/kegg_files/ko")
+    # for node in g.nodes():
+    #    print(g.nodes()[node]['kegg_cpd'])
+    # g_het = add_kegg_data_to_graph(g, "kegg_files/")
 
 
 """
