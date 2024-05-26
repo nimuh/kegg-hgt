@@ -227,13 +227,13 @@ def add_kegg_data_to_graph(g, relations_txt_file_c_r, relations_txt_file_r_ko):
     # use hashtable to map compounds to list of reactions
     with open(relations_txt_file_c_r) as f:
         for line in f.readlines():
-            rn, cpd = line.split()
+            cpd, rn = line.split()
             cpd_to_r[cpd].append(rn)
 
     # use hashtable to map reactions to list of KOs
     with open(relations_txt_file_r_ko) as f:
         for line in f.readlines():
-            rn, ko = line.split()
+            ko, rn = line.split()
             r_to_ko[rn].append(ko.split(":")[1])
 
     # construct cpd to ko relationships
@@ -255,7 +255,7 @@ def add_kegg_data_to_graph(g, relations_txt_file_c_r, relations_txt_file_r_ko):
             g.add_edge(cpd, ko)
 
     # print(g.nodes())
-    print([n for n in g.neighbors("K00001")])
+    # print([n for n in g.neighbors("K00001")])
 
 
 def process_kegg_graph_het(filename):
@@ -263,7 +263,7 @@ def process_kegg_graph_het(filename):
     # print(f"# of Nodes: {len(g.nodes)}")
     # print(f"of Edges: {len(g.edges)}")
 
-    add_kegg_data_to_graph(g, "../data/kegg_files/reaction", "../data/kegg_files/ko")
+    add_kegg_data_to_graph(g, "../data/kegg_files/compound", "../data/kegg_files/ko.1")
     # for node in g.nodes():
     #    print(g.nodes()[node]['kegg_cpd'])
     # g_het = add_kegg_data_to_graph(g, "kegg_files/")
