@@ -5,7 +5,7 @@ import torch
 import pandas as pd
 from torch_geometric import seed_everything
 from collections import defaultdict
-from torch_geometric.nn import GAE
+from torch_geometric.nn import GAE, to_hetero
 from torch_geometric.transforms import RandomLinkSplit, ToUndirected
 from torch_geometric.utils.convert import from_networkx
 from torch_geometric.data import HeteroData
@@ -14,7 +14,7 @@ import networkx as nx
 import pubchempy as pcp
 from rdkit import Chem
 from rdkit.Chem import MACCSkeys
-from kgt.models.gcn import GCNEncoder
+from kgt.models.hgt import HGT
 
 
 warnings.simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
@@ -200,12 +200,7 @@ def add_embeddings(embeddings, node_type):
 
 
 # TODO
-# add KO data type so that there are 2 node types in the graph
-# T(V) = <CPD, KO>
-# PHI(E) = <CPD, REACTS, CPD> or <> <CPD, INTERACTS, KO>
-# This way we also have 2 edges types representing compound-compound
-# relationships or compound-protein relationships
-# HGT should capture this
+# Add KO embeddings from ESM-2 for KO nodes
 def add_kegg_data_to_graph(g, relations_txt_file_c_r, relations_txt_file_r_ko):
     """
     Given a graph g and the relations_txt_file, this function adds the new
@@ -280,10 +275,31 @@ def add_kegg_data_to_graph(g, relations_txt_file_c_r, relations_txt_file_r_ko):
 
     maccs = torch.stack(list(map(torch.Tensor, cpd_to_maccs.values())))
     kos = torch.stack(list(map(torch.Tensor, ko_to_emb.values())))
-    cpd_ko_edges = torch.Tensor(cpd_ko_edges).type(torch.int).T
-    cpd_cpd_edges = torch.Tensor(cpd_cpd_edges).type(torch.int).T
+    cpd_ko_edges = torch.Tensor(cpd_ko_edges).type(torch.int64).T
+    cpd_cpd_edges = torch.Tensor(cpd_cpd_edges).type(torch.int64).T
     pyg_data = construct_het_graph(g, maccs, kos, cpd_cpd_edges, cpd_ko_edges)
-    print(pyg_data)
+
+    out_channels = 100
+    num_features = {
+        "cpd": 167,
+        "ko": 100,
+    }
+    model = HGT(
+        hidden_channels=64,
+        out_channels=100,
+        num_heads=2,
+        num_layers=3,
+        data=pyg_data,
+    )
+    # encoder = GCNEncoder(num_features, out_channels, pyg_data.metadata())
+    # model = to_hetero(
+    #    encoder, pyg_data.metadata(), aggr="mean", #, in_channels={"cpd": 167, "ko": 100}
+    # )
+    print(pyg_data.x_dict)
+    cpd_emb, ko_emb = model(pyg_data.x_dict, pyg_data.edge_index_dict)
+    print(cpd_emb.size())
+    print(ko_emb.size())
+    #print(pyg_data)
     return pyg_data
 
 
