@@ -279,11 +279,6 @@ def add_kegg_data_to_graph(g, relations_txt_file_c_r, relations_txt_file_r_ko):
     cpd_cpd_edges = torch.Tensor(cpd_cpd_edges).type(torch.int64).T
     pyg_data = construct_het_graph(g, maccs, kos, cpd_cpd_edges, cpd_ko_edges)
 
-    out_channels = 100
-    num_features = {
-        "cpd": 167,
-        "ko": 100,
-    }
     model = HGT(
         hidden_channels=64,
         out_channels=100,
@@ -291,15 +286,10 @@ def add_kegg_data_to_graph(g, relations_txt_file_c_r, relations_txt_file_r_ko):
         num_layers=3,
         data=pyg_data,
     )
-    # encoder = GCNEncoder(num_features, out_channels, pyg_data.metadata())
-    # model = to_hetero(
-    #    encoder, pyg_data.metadata(), aggr="mean", #, in_channels={"cpd": 167, "ko": 100}
-    # )
-    print(pyg_data.x_dict)
+
     cpd_emb, ko_emb = model(pyg_data.x_dict, pyg_data.edge_index_dict)
     print(cpd_emb.size())
     print(ko_emb.size())
-    #print(pyg_data)
     return pyg_data
 
 
