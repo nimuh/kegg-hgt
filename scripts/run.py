@@ -15,6 +15,8 @@ import pubchempy as pcp
 from rdkit import Chem
 from rdkit.Chem import MACCSkeys
 from kgt.models.hgt import HGT
+import matplotlib.pyplot as plt
+from networkx.drawing.nx_agraph import graphviz_layout
 
 
 warnings.simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
@@ -192,16 +194,14 @@ def add_embeddings(embeddings_path):
     """
 
     emb_df = pd.read_csv(embeddings_path)
-    emb_df = emb_df.set_index('KO')
-    return emb_df 
+    emb_df = emb_df.set_index("KO")
+    return emb_df
     # for each KO in embeddings
     # for each node in graph G
     # if node is a KO node AND matches to current KO
     # set feature to be embedding associated with KO
 
 
-# TODO
-# Add KO embeddings from ESM-2 for KO nodes
 def add_kegg_data_to_graph(
     g, relations_txt_file_c_r, relations_txt_file_r_ko
 ) -> HeteroData:
@@ -253,7 +253,7 @@ def add_kegg_data_to_graph(
     ko_to_idx = defaultdict(int)
     cpd_to_maccs = defaultdict(list)
     ko_to_emb = defaultdict(np.array)
-    ko_emb_df = add_embeddings('../data/embeddings/prok_esm650_ko_emb.csv')
+    ko_emb_df = add_embeddings("../data/embeddings/prok_esm650_ko_emb.csv")
     ko_emb_we_have = list(ko_emb_df.index)
     i, j = 0, 0
     V = list(g.nodes())
@@ -270,6 +270,23 @@ def add_kegg_data_to_graph(
             else:
                 g.remove_node(v_name)
 
+    # TODO
+    # Remove this graph plotting code
+    nodes_sorted = sorted(g.degree, key=lambda x: x[1], reverse=True)
+    print(nodes_sorted)
+    g.remove_edges_from(nx.selfloop_edges(g))
+    eg = nx.ego_graph(g, "K18983", radius=2)
+    color_map = []
+    for node in eg:
+        if "pubchem" in node:
+            color_map.append("blue")
+        else:
+            color_map.append("red")
+
+    nx.draw(eg, pos=graphviz_layout(eg), node_color=color_map, with_labels=True)
+    plt.savefig("../figures/kegg_het_net_K18983.png", format="PNG")
+    ##################################
+    
     cpd_ko_edges = [
         (cpd_to_idx[c], ko_to_idx[k])
         for (c, k) in g.edges()
