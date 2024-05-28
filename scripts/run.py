@@ -9,7 +9,7 @@ from torch_geometric.nn import GAE, to_hetero
 from torch_geometric.transforms import RandomLinkSplit, ToUndirected
 from torch_geometric.utils.convert import from_networkx
 from torch_geometric.data import HeteroData
-
+import numpy as np
 import networkx as nx
 import pubchempy as pcp
 from rdkit import Chem
@@ -177,7 +177,7 @@ def add_node_to_graph(g, pc_cid, feat_name):
 # TODO
 # map each KO in the graph to a vector that is the average over the embeddings
 # produced by ESM-2-650M
-def add_embeddings(embeddings, node_type):
+def add_embeddings(embeddings_path):
     """
     Given a set of embeddings with their associated labels, we add them to the
     graph.
@@ -191,17 +191,20 @@ def add_embeddings(embeddings, node_type):
         Graph: New graph, new_g, with added embeddings.
     """
 
+    emb_df = pd.read_csv(embeddings_path)
+    emb_df = emb_df.set_index('KO')
+    return emb_df 
     # for each KO in embeddings
     # for each node in graph G
     # if node is a KO node AND matches to current KO
     # set feature to be embedding associated with KO
 
-    pass
-
 
 # TODO
 # Add KO embeddings from ESM-2 for KO nodes
-def add_kegg_data_to_graph(g, relations_txt_file_c_r, relations_txt_file_r_ko):
+def add_kegg_data_to_graph(
+    g, relations_txt_file_c_r, relations_txt_file_r_ko
+) -> HeteroData:
     """
     Given a graph g and the relations_txt_file, this function adds the new
     relations and nodes to the graph
@@ -249,17 +252,23 @@ def add_kegg_data_to_graph(g, relations_txt_file_c_r, relations_txt_file_r_ko):
     cpd_to_idx = defaultdict(int)
     ko_to_idx = defaultdict(int)
     cpd_to_maccs = defaultdict(list)
-    ko_to_emb = defaultdict(list)
+    ko_to_emb = defaultdict(np.array)
+    ko_emb_df = add_embeddings('../data/embeddings/prok_esm650_ko_emb.csv')
+    ko_emb_we_have = list(ko_emb_df.index)
     i, j = 0, 0
-    for i, v_name in enumerate(g.nodes()):
+    V = list(g.nodes())
+    for i, v_name in enumerate(V):
         if "pubchem" in v_name:
             cpd_to_idx[v_name] = i
             cpd_to_maccs[v_name] = list(map(int, g.nodes[v_name]["maccs"]))
             i += 1
         elif "K" in v_name:
             ko_to_idx[v_name] = j
-            ko_to_emb[v_name] = g.nodes[v_name]["emb"]
-            j += 1
+            if v_name in ko_emb_we_have:
+                ko_to_emb[v_name] = ko_emb_df.loc[v_name].values
+                j += 1
+            else:
+                g.remove_node(v_name)
 
     cpd_ko_edges = [
         (cpd_to_idx[c], ko_to_idx[k])
@@ -279,6 +288,8 @@ def add_kegg_data_to_graph(g, relations_txt_file_c_r, relations_txt_file_r_ko):
     cpd_cpd_edges = torch.Tensor(cpd_cpd_edges).type(torch.int64).T
     pyg_data = construct_het_graph(g, maccs, kos, cpd_cpd_edges, cpd_ko_edges)
 
+    print(pyg_data)
+    # ADD THIS TO ANOTHER FUNCTION
     model = HGT(
         hidden_channels=64,
         out_channels=100,
