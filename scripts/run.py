@@ -22,18 +22,9 @@ import tqdm
 import torch.nn.functional as F
 
 
-
 warnings.simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 
 seed_everything(42)
-
-# TODO
-# implement HGT model
-# measure link prediction performance?
-
-# QUESTION: Can we extract a subset of the edges that are between compounds
-# only for testing? This way we can measure how the compound-compound link
-# prediction performance improves over the original homogeneous graph
 
 
 def main():
@@ -46,38 +37,10 @@ def main():
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    process_kegg_graph_het(graph_filename)
-
-    """
-    geo_g, geo_g_train, geo_g_val, _, _ = process_kegg_graph(
-        graph_filename,
-        val_frac=0.20,
-        test_frac=0.20,
-        feat_name=args.feature,
-        # add_node_cid=5312377,
-    )
-
-    out_channels = args.outdim
-    num_features = geo_g_train.num_features
-    epochs = args.epochs
-    encoder = GCNEncoder(num_features, out_channels)
-    model = GAE(encoder)
-
-    # training loop
-    optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
-    for epoch in range(epochs):
-        loss = train(model, geo_g_train, optimizer)
-        z = model.encode(geo_g.x, geo_g.edge_index)
-        model.eval()
-        auc, ap = model.test(
-            z, geo_g_val.pos_edge_label_index, geo_g_val.neg_edge_label_index
-        )
-        logging.info(
-            "EPOCH: {:03d} TRAIN LOSS: {:.4f} AUC: {:.4f} AP: {:.4f}".format(
-                epoch, loss, auc, ap
-            )
-        )
-    """
+    train_data, val_data, test_data = process_kegg_graph_het(graph_filename)
+    train_model(train_data, val_data, attn_heads=2, epochs=60)
+    train_model(train_data, val_data, attn_heads=4, epochs=60)
+    train_model(train_data, val_data, attn_heads=8, epochs=60)
 
 
 def parse_cmd_args():
@@ -93,37 +56,6 @@ def parse_cmd_args():
     parser.add_argument("--save", action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
     return args
-
-
-def train(model, g_train, optimizer):
-    model.train()
-    optimizer.zero_grad()
-    z = model.encode(g_train.x, g_train.edge_index)
-    loss = model.recon_loss(
-        z,
-        g_train.pos_edge_label_index,
-        neg_edge_index=g_train.neg_edge_label_index,
-    )
-    loss.backward()
-    optimizer.step()
-    return float(loss)
-
-
-def predict(model, g, inf_g):
-    model.eval()
-    z = model.encode(g.x, g.edge_index)
-    h = model.encode(inf_g.x, inf_g.edge_index)
-    probs = torch.sigmoid(torch.matmul(z, h.T))[:, 0]
-    best_matches = torch.argwhere(torch.where(probs > 0.90, probs, 0))[:, 0]
-    best_probs = [probs[j].detach().numpy().item() for j in best_matches]
-    best_comps = [g.kegg_cpd[best_match] for best_match in best_matches]
-    best_matches = dict(zip(best_comps, best_probs))
-    best_matches = {
-        k: v
-        for k, v in sorted(best_matches.items(), reverse=True, key=lambda item: item[1])
-    }
-    for k, v in best_matches.items():
-        print(k, v)
 
 
 def query_pubchem(cid):
@@ -177,9 +109,6 @@ def add_node_to_graph(g, pc_cid, feat_name):
     return new_g
 
 
-# TODO
-# map each KO in the graph to a vector that is the average over the embeddings
-# produced by ESM-2-650M
 def add_embeddings(embeddings_path):
     """
     Given a set of embeddings with their associated labels, we add them to the
@@ -197,10 +126,6 @@ def add_embeddings(embeddings_path):
     emb_df = pd.read_csv(embeddings_path)
     emb_df = emb_df.set_index("KO")
     return emb_df
-    # for each KO in embeddings
-    # for each node in graph G
-    # if node is a KO node AND matches to current KO
-    # set feature to be embedding associated with KO
 
 
 def add_kegg_data_to_graph(
@@ -271,7 +196,8 @@ def add_kegg_data_to_graph(
             else:
                 g.remove_node(v_name)
 
-    # TODO
+    g.remove_edges_from(nx.selfloop_edges(g))
+
     # Remove this graph plotting code
 
     #######################################
@@ -309,30 +235,34 @@ def add_kegg_data_to_graph(
     cpd_ko_edges = torch.Tensor(cpd_ko_edges).type(torch.int64).T
     cpd_cpd_edges = torch.Tensor(cpd_cpd_edges).type(torch.int64).T
     pyg_data = construct_het_graph(g, maccs, kos, cpd_cpd_edges, cpd_ko_edges)
-
     print(pyg_data)
 
     transform = T.RandomLinkSplit(
-    num_val=0.2,
-    num_test=0.2,
-    disjoint_train_ratio=0.3,
-    neg_sampling_ratio=2.0,
-    add_negative_train_samples=False,
-    edge_types=("cpd", "interacts", "ko"),
-    rev_edge_types=("ko", "interacts", "cpd"), 
-)
+        is_undirected=True,
+        num_val=0.2,
+        num_test=0.2,
+        # disjoint_train_ratio=0.3,
+        neg_sampling_ratio=2.0,
+        add_negative_train_samples=True,
+        edge_types=("cpd", "interacts", "ko"),
+        rev_edge_types=("ko", "interacts", "cpd"),
+    )
     train_data, val_data, test_data = transform(pyg_data)
+    return train_data, val_data, test_data
 
-    # ADD THIS TO ANOTHER FUNCTION
+
+def train_model(train_data, val_data, attn_heads=8, epochs=100):
     model = HGTLink(
         hidden_channels=128,
         out_channels=128,
-        num_heads=4,
-        num_layers=3,
-        data=pyg_data,
+        num_heads=attn_heads,
+        num_layers=4,
+        data=train_data,
     )
-    epochs = 10
+
     # TRAINING
+    training_epoch_losses = []
+    val_epoch_losses = []
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
     for epoch in range(epochs):
 
@@ -347,6 +277,7 @@ def add_kegg_data_to_graph(
         optimizer.step()
         total_loss += float(loss) * pred.numel()
         total_examples += pred.numel()
+        training_epoch_losses.append(total_loss / total_examples)
         print(f"Epoch: {epoch:03d}, Train Loss: {total_loss / total_examples:.4f}")
 
         # Validation
@@ -357,10 +288,19 @@ def add_kegg_data_to_graph(
         loss = F.binary_cross_entropy_with_logits(pred, ground_truth)
         total_loss += float(loss) * pred.numel()
         total_examples += pred.numel()
+        val_epoch_losses.append(total_loss / total_examples)
         print(f"Epoch: {epoch:03d}, Val Loss: {total_loss / total_examples:.4f}")
 
+    plt.figure()
+    plt.plot(training_epoch_losses, label="train BCE loss")
+    plt.plot(val_epoch_losses, label="val BCE loss")
+    plt.ylabel("BCE Loss")
+    plt.xlabel("Epoch")
+    plt.title("BCE Loss of Link Prediction CPD-KO")
+    plt.legend()
+    plt.savefig(f"../figures/train_losses_heads={attn_heads}.png")
 
-    return pyg_data
+    return model
 
 
 # function should construct a HeteroData type for torch_geo from
@@ -381,18 +321,9 @@ def construct_het_graph(
 
 def process_kegg_graph_het(filename):
     g = nx.read_graphml(filename)
-    # print(f"# of Nodes: {len(g.nodes)}")
-    # print(f"of Edges: {len(g.edges)}")
-
-    add_kegg_data_to_graph(g, "../data/kegg_files/compound", "../data/kegg_files/ko.1")
-    # for node in g.nodes():
-    #    print(g.nodes()[node]['kegg_cpd'])
-    # g_het = add_kegg_data_to_graph(g, "kegg_files/")
-
-
-"""
-For processing and loading in KG for training and validation
-"""
+    return add_kegg_data_to_graph(
+        g, "../data/kegg_files/compound", "../data/kegg_files/ko.1"
+    )
 
 
 def process_kegg_graph(filename, val_frac, test_frac, feat_name, add_node_cid=None):
