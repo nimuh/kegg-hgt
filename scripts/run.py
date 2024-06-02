@@ -9,14 +9,18 @@ from torch_geometric.nn import GAE, to_hetero
 from torch_geometric.transforms import RandomLinkSplit, ToUndirected
 from torch_geometric.utils.convert import from_networkx
 from torch_geometric.data import HeteroData
+import torch_geometric.transforms as T
 import numpy as np
 import networkx as nx
 import pubchempy as pcp
 from rdkit import Chem
 from rdkit.Chem import MACCSkeys
-from kgt.models.hgt import HGT
+from kgt.models.hgt import HGTLink
 import matplotlib.pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
+import tqdm
+import torch.nn.functional as F
+
 
 
 warnings.simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
@@ -24,9 +28,6 @@ warnings.simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
 seed_everything(42)
 
 # TODO
-# add second data type to the graph
-# add compounds connected to KOs by reaction
-# set KOs to be average of protein embeddings from ESM
 # implement HGT model
 # measure link prediction performance?
 
@@ -272,6 +273,9 @@ def add_kegg_data_to_graph(
 
     # TODO
     # Remove this graph plotting code
+
+    #######################################
+    """
     nodes_sorted = sorted(g.degree, key=lambda x: x[1], reverse=True)
     print(nodes_sorted)
     g.remove_edges_from(nx.selfloop_edges(g))
@@ -285,8 +289,9 @@ def add_kegg_data_to_graph(
 
     nx.draw(eg, pos=graphviz_layout(eg), node_color=color_map, with_labels=True)
     plt.savefig("../figures/kegg_het_net_K18983.png", format="PNG")
+    """
     ##################################
-    
+
     cpd_ko_edges = [
         (cpd_to_idx[c], ko_to_idx[k])
         for (c, k) in g.edges()
@@ -306,18 +311,55 @@ def add_kegg_data_to_graph(
     pyg_data = construct_het_graph(g, maccs, kos, cpd_cpd_edges, cpd_ko_edges)
 
     print(pyg_data)
+
+    transform = T.RandomLinkSplit(
+    num_val=0.2,
+    num_test=0.2,
+    disjoint_train_ratio=0.3,
+    neg_sampling_ratio=2.0,
+    add_negative_train_samples=False,
+    edge_types=("cpd", "interacts", "ko"),
+    rev_edge_types=("ko", "interacts", "cpd"), 
+)
+    train_data, val_data, test_data = transform(pyg_data)
+
     # ADD THIS TO ANOTHER FUNCTION
-    model = HGT(
-        hidden_channels=64,
-        out_channels=100,
-        num_heads=2,
+    model = HGTLink(
+        hidden_channels=128,
+        out_channels=128,
+        num_heads=4,
         num_layers=3,
         data=pyg_data,
     )
+    epochs = 10
+    # TRAINING
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
+    for epoch in range(epochs):
 
-    cpd_emb, ko_emb = model(pyg_data.x_dict, pyg_data.edge_index_dict)
-    print(cpd_emb.size())
-    print(ko_emb.size())
+        # TRAIN
+        total_loss = total_examples = 0
+        optimizer.zero_grad()
+        model.train()
+        pred = model(train_data)
+        ground_truth = train_data["cpd", "interacts", "ko"].edge_label
+        loss = F.binary_cross_entropy_with_logits(pred, ground_truth)
+        loss.backward()
+        optimizer.step()
+        total_loss += float(loss) * pred.numel()
+        total_examples += pred.numel()
+        print(f"Epoch: {epoch:03d}, Train Loss: {total_loss / total_examples:.4f}")
+
+        # Validation
+        model.eval()
+        total_loss = total_examples = 0
+        pred = model(val_data)
+        ground_truth = val_data["cpd", "interacts", "ko"].edge_label
+        loss = F.binary_cross_entropy_with_logits(pred, ground_truth)
+        total_loss += float(loss) * pred.numel()
+        total_examples += pred.numel()
+        print(f"Epoch: {epoch:03d}, Val Loss: {total_loss / total_examples:.4f}")
+
+
     return pyg_data
 
 

@@ -31,4 +31,31 @@ class HGT(torch.nn.Module):
         for conv in self.convs:
             x_dict = conv(x_dict, edge_index_dict)
 
-        return self.lin(x_dict['cpd']), self.lin(x_dict['ko']) #['cpd'])
+        return self.lin(x_dict['cpd']), self.lin(x_dict['ko'])
+    
+
+class LinkPredictionModule(torch.nn.Module):
+    def forward(self, x_cpd, x_ko, edge_label_index):
+        # Convert node embeddings to edge-level representations:
+        edge_feat_user = x_cpd[edge_label_index[0]]
+        edge_feat_movie = x_ko[edge_label_index[1]]
+        # Apply dot-product to get a prediction per supervision edge:
+        return (edge_feat_user * edge_feat_movie).sum(dim=-1)
+
+
+class HGTLink(torch.nn.Module):
+    def __init__(self, hidden_channels, out_channels, data, num_heads=3, num_layers=3):
+        super().__init__()
+        self.gnn = HGT(hidden_channels, out_channels, num_heads, num_layers, data)
+        self.classifier = LinkPredictionModule()
+
+    def forward(self, data):
+        embeddings = self.gnn(data.x_dict, data.edge_index_dict)
+        x_dict = {'cpd': embeddings[0], 'ko': embeddings[1]}
+        pred = self.classifier(
+            x_dict["cpd"],
+            x_dict["ko"],
+            data["cpd", "interacts", "ko"].edge_label_index,
+        )
+
+        return pred
