@@ -38,9 +38,24 @@ def main():
     )
 
     train_data, val_data, test_data = process_kegg_graph_het(graph_filename)
-    train_model(train_data, val_data, attn_heads=2, epochs=60)
-    train_model(train_data, val_data, attn_heads=4, epochs=60)
-    train_model(train_data, val_data, attn_heads=8, epochs=60)
+
+    # test these parameters
+    hyperparmas = [
+        (2, 64),
+        (2, 128),
+        (2, 256),
+        (4, 64),
+        (4, 128),
+        (4, 256),
+        (8, 64),
+        (8, 128),
+        (8, 256),
+    ]
+
+    for heads, hidden in hyperparmas:
+        train_model(
+            train_data, val_data, attn_heads=heads, hidden_channels=hidden, epochs=60
+        )
 
 
 def parse_cmd_args():
@@ -251,9 +266,9 @@ def add_kegg_data_to_graph(
     return train_data, val_data, test_data
 
 
-def train_model(train_data, val_data, attn_heads=8, epochs=100):
+def train_model(train_data, val_data, attn_heads=8, hidden_channels=128, epochs=100):
     model = HGTLink(
-        hidden_channels=128,
+        hidden_channels=hidden_channels,
         out_channels=128,
         num_heads=attn_heads,
         num_layers=4,
@@ -298,7 +313,9 @@ def train_model(train_data, val_data, attn_heads=8, epochs=100):
     plt.xlabel("Epoch")
     plt.title("BCE Loss of Link Prediction CPD-KO")
     plt.legend()
-    plt.savefig(f"../figures/train_losses_heads={attn_heads}.png")
+    plt.savefig(
+        f"../figures/train_losses_heads={attn_heads}_hidden={hidden_channels}.png"
+    )
 
     return model
 

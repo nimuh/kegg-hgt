@@ -3,8 +3,10 @@ import torch
 from torch_geometric.nn import HGTConv, Linear
 
 """
-HGT Example from 
+Sources 
 https://github.com/pyg-team/pytorch_geometric/blob/master/examples/hetero/hgt_dblp.py
+https://pytorch-geometric.readthedocs.io/en/latest/notes/heterogeneous.html
+https://medium.com/@pytorch_geometric/link-prediction-on-heterogeneous-graphs-with-pyg-6d5c29677c70
 """
 class HGT(torch.nn.Module):
     def __init__(self, hidden_channels, out_channels, num_heads, num_layers, data):
