@@ -26,3 +26,5 @@ bash run
 `scripts/run` contains how to use the run.py to run with your parameters.
 
 Note: Make sure to have git-lfs (git large file system) installed. The file `data/embeddings/prok_esm650_ko_emb.csv` is larger than 100MB and is necessary to build the KG.
+
+## About the project
