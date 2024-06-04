@@ -38,37 +38,30 @@ def main():
     )
 
     train_data, val_data, test_data = process_kegg_graph_het(graph_filename)
+    hidden = args.hiddendim
+    epochs = args.epochs
+    output_dim = args.outdim
+    heads = args.attn_heads
 
-    # test these parameters
-    hyperparmas = [
-        (2, 64),
-        (2, 128),
-        (2, 256),
-        (4, 64),
-        (4, 128),
-        (4, 256),
-        (8, 64),
-        (8, 128),
-        (8, 256),
-    ]
+    
 
-    for heads, hidden in hyperparmas:
-        train_model(
-            train_data, val_data, attn_heads=heads, hidden_channels=hidden, epochs=60
-        )
+    train_model(
+        train_data, val_data, attn_heads=heads, hidden_channels=hidden, epochs=epochs, output_dims=output_dim,
+    )
+
+    # TODO
+    # run on test data too
+    # clean up parser code
+    
 
 
 def parse_cmd_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--graph_file")
-    parser.add_argument("--feature")
-    parser.add_argument("--met_data")
-    parser.add_argument("--metadata")
-    parser.add_argument("--data_info")
     parser.add_argument("--hiddendim", type=int)
     parser.add_argument("--outdim", type=int)
+    parser.add_argument("--attn_heads", type=int)
     parser.add_argument("--epochs", type=int)
-    parser.add_argument("--save", action=argparse.BooleanOptionalAction)
     args = parser.parse_args()
     return args
 
@@ -266,10 +259,10 @@ def add_kegg_data_to_graph(
     return train_data, val_data, test_data
 
 
-def train_model(train_data, val_data, attn_heads=8, hidden_channels=128, epochs=100):
+def train_model(train_data, val_data, attn_heads=8, output_dims=100, hidden_channels=128, epochs=100):
     model = HGTLink(
         hidden_channels=hidden_channels,
-        out_channels=128,
+        out_channels=output_dims,
         num_heads=attn_heads,
         num_layers=4,
         data=train_data,
@@ -307,14 +300,14 @@ def train_model(train_data, val_data, attn_heads=8, hidden_channels=128, epochs=
         print(f"Epoch: {epoch:03d}, Val Loss: {total_loss / total_examples:.4f}")
 
     plt.figure()
+    plt.title(f'BCE Loss CPD-KO LP AH={attn_heads} HD={hidden_channels} OD={output_dims}')
     plt.plot(training_epoch_losses, label="train BCE loss")
     plt.plot(val_epoch_losses, label="val BCE loss")
     plt.ylabel("BCE Loss")
     plt.xlabel("Epoch")
-    plt.title("BCE Loss of Link Prediction CPD-KO")
     plt.legend()
     plt.savefig(
-        f"../figures/train_losses_heads={attn_heads}_hidden={hidden_channels}.png"
+        f"../figures/train_losses_heads={attn_heads}_hidden={hidden_channels}_outdims={output_dims}.png"
     )
 
     return model

@@ -38,10 +38,8 @@ class HGT(torch.nn.Module):
 
 class LinkPredictionModule(torch.nn.Module):
     def forward(self, x_cpd, x_ko, edge_label_index):
-        # Convert node embeddings to edge-level representations:
         edge_feat_user = x_cpd[edge_label_index[0]]
         edge_feat_movie = x_ko[edge_label_index[1]]
-        # Apply dot-product to get a prediction per supervision edge:
         return (edge_feat_user * edge_feat_movie).sum(dim=-1)
 
 
