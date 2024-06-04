@@ -45,5 +45,3 @@ The model is based on the Heterogeneous Graph Transformer model. We use the same
 ### Experiments
 
 We ran a series of experiments to evaluate the HGT link model. We tested a series of attention heads and hidden layer size values. Each experiment was ran for 10 epochs due to time and resource constraints.
-
-### Results
