@@ -38,3 +38,9 @@ We have two types of nodes in this graph: compounds, which are represented by a 
 ### The HGT Model
 
 The model is based on the Heterogeneous Graph Transformer model. We use the same algorithm as defined in the paper from the implementation in `pytorch geometric`. We add a link prediction head on top of the GNN to predict if a compound and a KO link or not.
+
+### Experiments
+
+We ran a series of experiments to evaluate the HGT link model. We tested a series of attention heads and hidden layer size values. Each experiment was ran for 10 epochs due to time and resource constraints.
+
+### Results
