@@ -33,7 +33,7 @@ The idea for this project is build a knowledge graph (KG) from the KEGG database
 
 ### Node features and types
 
-We have two types of nodes in this graph: compounds, which are represented by a MACCS structural key from the PubChem database, and KEGG Orthologs (KO) which are represented as dense vectors that are mean-pooled protein embeddings from the ESM-2 transformer-based protein language model. A KO represents a family (or set) of proteins that related by function. In order to represent each KO in a compact way, we just take the average of the embeddings for each protein within the KO. This produces a single vector for each KO.
+We have two types of nodes in this graph: compounds, which are represented by a MACCS structural key from the PubChem database, and KEGG Orthologs (KO) which are represented as dense vectors that are mean-pooled protein embeddings from the ESM-2 transformer-based protein language model. A KO represents a family (or set) of proteins that related by function. In order to represent each KO in a compact way, we just take the average of the embeddings for each protein within the KO. This produces a single vector for each KO. Below is an subgraph from our graph which illustrates this idea.
 
 ![alt text](https://github.com/nimuh/kegg-hgt/blob/main/figures/kegg_het_net_K18983.png)
 
