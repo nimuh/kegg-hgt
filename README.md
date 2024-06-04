@@ -8,6 +8,7 @@ Create your conda environment:
 
 ```
 conda env create --name YOUR_ENV_NAME --file environment.yml
+conda activate YOUR_ENV_NAME
 ```
 
 How to set up:
