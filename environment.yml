@@ -1,49 +1,105 @@
 name: kgt
 channels:
   - pytorch
+  - anaconda
   - defaults
 dependencies:
   - blas=1.0=openblas
+  - boost-cpp=1.82.0=h48ca7d4_2
   - bottleneck=1.3.7=py39hbda83bc_0
+  - brotli=1.0.9=h80987f9_8
+  - brotli-bin=1.0.9=h80987f9_8
   - brotli-python=1.0.9=py39h313beb8_8
+  - bzip2=1.0.8=h620ffc9_4
+  - c-ares=1.19.1=h80987f9_0
   - ca-certificates=2024.3.11=hca03da5_0
+  - cairo=1.16.0=h302bd0f_5
   - certifi=2024.2.2=py39hca03da5_0
   - charset-normalizer=2.0.4=pyhd3eb1b0_0
+  - contourpy=1.2.0=py39h48ca7d4_0
+  - cycler=0.11.0=pyhd3eb1b0_0
+  - expat=2.5.0=h313beb8_0
   - filelock=3.13.1=py39hca03da5_0
+  - font-ttf-dejavu-sans-mono=2.37=hd3eb1b0_0
+  - font-ttf-inconsolata=2.001=hcb22688_0
+  - font-ttf-source-code-pro=2.030=hd3eb1b0_0
+  - font-ttf-ubuntu=0.83=h8b1ccd4_0
+  - fontconfig=2.14.1=hee714a5_2
+  - fonts-anaconda=1=h8fa9717_0
+  - fonts-conda-ecosystem=1=hd3eb1b0_0
+  - fonttools=4.51.0=py39h80987f9_0
   - freetype=2.12.1=h1192e45_0
+  - fribidi=1.0.10=h1a28f6b_0
+  - gdk-pixbuf=2.42.10=h80987f9_0
+  - gettext=0.21.0=h13f89a0_1
+  - giflib=5.2.1=h80987f9_3
+  - glib=2.69.1=h514c7bf_2
   - gmp=6.2.1=hc377ac9_3
   - gmpy2=2.1.2=py39h8c48613_0
+  - graphite2=1.3.14=hc377ac9_1
+  - graphviz=2.50.0=hf331ead_1
+  - gts=0.7.6=hde733a8_3
+  - harfbuzz=4.3.0=he9eebac_2
+  - icu=73.1=h313beb8_0
   - idna=3.7=py39hca03da5_0
+  - importlib_resources=6.1.1=py39hca03da5_1
   - jinja2=3.1.3=py39hca03da5_0
   - jpeg=9e=h80987f9_1
+  - kiwisolver=1.4.4=py39h313beb8_0
+  - krb5=1.20.1=hf3e1bf2_1
   - lcms2=2.12=hba8e193_0
   - lerc=3.0=hc377ac9_0
+  - libboost=1.82.0=h0bc93f9_2
+  - libbrotlicommon=1.0.9=h80987f9_8
+  - libbrotlidec=1.0.9=h80987f9_8
+  - libbrotlienc=1.0.9=h80987f9_8
+  - libcurl=8.4.0=h3e2b118_0
   - libcxx=14.0.6=h848a8c0_0
   - libdeflate=1.17=h80987f9_1
+  - libedit=3.1.20221030=h80987f9_0
+  - libev=4.33=h1a28f6b_1
   - libffi=3.4.4=hca03da5_1
+  - libgd=2.3.3=h14f8a72_1
   - libgfortran=5.0.0=11_3_0_hca03da5_28
   - libgfortran5=11.3.0=h009349e_28
+  - libiconv=1.16=h1a28f6b_2
   - libjpeg-turbo=2.0.0=h1a28f6b_0
+  - libnghttp2=1.57.0=h62f6fdd_0
   - libopenblas=0.3.21=h269037a_0
   - libpng=1.6.39=h80987f9_0
+  - librsvg=2.54.4=hb3bd4c3_3
+  - libssh2=1.10.0=h02f6b3c_2
   - libtiff=4.5.1=h313beb8_0
+  - libtool=2.4.6=h313beb8_1009
+  - libwebp=1.3.2=ha3663a8_0
   - libwebp-base=1.3.2=h80987f9_0
+  - libxml2=2.10.4=h0dcf63f_1
   - llvm-openmp=14.0.6=hc6e5704_0
   - lz4-c=1.9.4=h313beb8_1
   - markupsafe=2.1.3=py39h80987f9_0
+  - matplotlib=3.8.4=py39hca03da5_0
+  - matplotlib-base=3.8.4=py39h46d7db6_0
   - mpc=1.1.0=h8c48613_1
   - mpfr=4.0.2=h695f6f0_1
   - mpmath=1.3.0=py39hca03da5_0
   - ncurses=6.4=h313beb8_0
   - networkx=3.1=py39hca03da5_0
+  - nspr=4.35=h313beb8_0
+  - nss=3.89.1=h313beb8_0
   - numexpr=2.8.7=py39hecc3335_0
   - numpy=1.26.4=py39h3b2db8e_0
   - numpy-base=1.26.4=py39ha9811e2_0
   - openjpeg=2.3.0=h7a6adac_2
-  - openssl=3.0.13=h1a28f6b_1
+  - openssl=3.0.13=h1a28f6b_2
   - pandas=2.2.1=py39h313beb8_0
+  - pango=1.50.7=h7271ec9_0
+  - pcre=8.45=hc377ac9_0
   - pillow=10.3.0=py39h80987f9_0
   - pip=24.0=py39hca03da5_0
+  - pixman=0.40.0=h1a28f6b_0
+  - poppler=22.12.0=h52f4003_3
+  - poppler-data=0.4.11=hca03da5_1
+  - pygraphviz=1.9=py39h80987f9_1
   - pysocks=1.7.1=py39hca03da5_0
   - python=3.9.19=hb885b13_1
   - python-dateutil=2.9.0post0=py39hca03da5_0
@@ -60,12 +116,15 @@ dependencies:
   - tk=8.6.14=h6ba3021_0
   - torchaudio=2.3.0=py39_cpu
   - torchvision=0.18.0=py39_cpu
+  - tornado=6.3.3=py39h80987f9_0
   - typing_extensions=4.11.0=py39hca03da5_0
   - tzdata=2024a=h04d1e81_0
+  - unicodedata2=15.1.0=py39h80987f9_0
   - urllib3=2.2.1=py39hca03da5_0
   - wheel=0.43.0=py39hca03da5_0
   - xz=5.4.6=h80987f9_1
   - yaml=0.2.5=h1a28f6b_0
+  - zipp=3.17.0=py39hca03da5_0
   - zlib=1.2.13=h18a0788_1
   - zstd=1.5.5=hd90d995_2
   - pip:
@@ -77,8 +136,11 @@ dependencies:
     - black==24.4.2
     - click==8.1.7
     - dill==0.3.8
+    - exceptiongroup==1.2.1
     - frozenlist==1.4.1
     - fsspec==2024.5.0
+    - heapdict==1.0.1
+    - iniconfig==2.0.0
     - isort==5.13.2
     - joblib==1.4.2
     - mccabe==0.7.0
@@ -87,10 +149,12 @@ dependencies:
     - packaging==24.0
     - pathspec==0.12.1
     - platformdirs==4.2.2
+    - pluggy==1.5.0
     - psutil==5.9.8
     - pubchempy==1.0.4
     - pylint==3.2.2
     - pyparsing==3.1.2
+    - pytest==8.2.1
     - rdkit==2023.9.6
     - scikit-learn==1.4.2
     - scipy==1.13.0
