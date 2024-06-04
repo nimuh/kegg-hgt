@@ -6,3 +6,11 @@ This repository contains code for building and running a HGT model on a construc
 
 How to set up:
 `python setup.py`
+
+To run the code as is:
+
+```
+cd scripts
+bash run
+
+```
