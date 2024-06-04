@@ -14,7 +14,7 @@ conda activate YOUR_ENV_NAME
 How to set up:
 
 ```
-python setup.py
+pip install -e .
 ```
 
 To run the code as is:
