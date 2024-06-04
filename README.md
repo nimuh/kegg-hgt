@@ -14,3 +14,5 @@ cd scripts
 bash run
 
 ```
+
+`scripts/run` contains how to use the run.py to run with your parameters.
