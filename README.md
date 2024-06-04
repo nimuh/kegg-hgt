@@ -33,4 +33,8 @@ The idea for this project is build a knowledge graph (KG) from the KEGG database
 
 ### Node features and types
 
-We have two types of nodes in this graph: compounds, which are represented by a MACCS structural key from the PubChem database, and KEGG Orthologs (KO) which are represented as dense vectors that are mean-pooled protein embeddings from the ESM-2 protein language model. A KO represents a family (or set) of proteins that related by function. In order to represent each KO in a compact way, we just take the average of the embeddings for each protein within the KO. This produces a single vector for each KO.
+We have two types of nodes in this graph: compounds, which are represented by a MACCS structural key from the PubChem database, and KEGG Orthologs (KO) which are represented as dense vectors that are mean-pooled protein embeddings from the ESM-2 transformer-based protein language model. A KO represents a family (or set) of proteins that related by function. In order to represent each KO in a compact way, we just take the average of the embeddings for each protein within the KO. This produces a single vector for each KO.
+
+### The HGT Model
+
+The model is based on the Heterogeneous Graph Transformer model. We use the same algorithm as defined in the paper from the implementation in `pytorch geometric`. We add a link prediction head on top of the GNN to predict if a compound and a KO link or not.
