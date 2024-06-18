@@ -1,14 +1,14 @@
-python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=256 --outdim=128 --attn_heads=8 --epochs=20
-python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=128 --outdim=128 --attn_heads=8 --epochs=20
-python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=64 --outdim=128 --attn_heads=8 --epochs=20
+#python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=256 --outdim=128 --attn_heads=8 --epochs=20
+python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=128 --outdim=128 --attn_heads=8 --num_layers=4 --epochs=50
+python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=64 --outdim=128 --attn_heads=8 --num_layers=4 --epochs=50
 
-python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=256 --outdim=128 --attn_heads=4 --epochs=20
-python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=128 --outdim=128 --attn_heads=4 --epochs=20
-python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=64 --outdim=128 --attn_heads=4 --epochs=20
+#python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=256 --outdim=128 --attn_heads=4 --epochs=20
+python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=128 --outdim=128 --attn_heads=4 --num_layers=4 --epochs=50
+python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=64 --outdim=128 --attn_heads=4 --num_layers=4 --epochs=50
 
-python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=256 --outdim=128 --attn_heads=2 --epochs=20
-python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=128 --outdim=128 --attn_heads=2 --epochs=20
-python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=64 --outdim=128 --attn_heads=2 --epochs=20
+#python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=256 --outdim=128 --attn_heads=2 --epochs=20
+python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=128 --outdim=128 --attn_heads=2 --num_layers=4 --epochs=50
+python run.py --graph_file=../data/graphs/comp-comp-by-ko-by-rn-attr_maccs --hiddendim=64 --outdim=128 --attn_heads=2 --num_layers=4 --epochs=50
 
 
 

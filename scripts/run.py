@@ -15,7 +15,7 @@ import networkx as nx
 import pubchempy as pcp
 from rdkit import Chem
 from rdkit.Chem import MACCSkeys
-from kgt.models.hgt import HGTLink
+from kgt.models.hgt import HGTLink, HGTLConfig
 import matplotlib.pyplot as plt
 from networkx.drawing.nx_agraph import graphviz_layout
 import tqdm
@@ -38,21 +38,31 @@ def main():
     )
 
     train_data, val_data, test_data = process_kegg_graph_het(graph_filename)
-    hidden = args.hiddendim
+    # hidden = args.hiddendim
     epochs = args.epochs
-    output_dim = args.outdim
-    heads = args.attn_heads
+    # output_dim = args.outdim
+    # heads = args.attn_heads
 
-    
+    config = HGTLConfig(
+        hidden_channels=args.hiddendim,
+        out_channels=args.outdim,
+        num_heads=args.attn_heads,
+        num_layers=args.num_layers,
+    )
 
     train_model(
-        train_data, val_data, attn_heads=heads, hidden_channels=hidden, epochs=epochs, output_dims=output_dim,
+        train_data,
+        val_data,
+        config=config,
+        # attn_heads=heads,
+        # hidden_channels=hidden,
+        epochs=epochs,
+        # output_dims=output_dim,
     )
 
     # TODO
     # run on test data too
     # clean up parser code
-    
 
 
 def parse_cmd_args():
@@ -62,6 +72,7 @@ def parse_cmd_args():
     parser.add_argument("--outdim", type=int)
     parser.add_argument("--attn_heads", type=int)
     parser.add_argument("--epochs", type=int)
+    parser.add_argument("--num_layers", type=int)
     args = parser.parse_args()
     return args
 
@@ -259,12 +270,9 @@ def add_kegg_data_to_graph(
     return train_data, val_data, test_data
 
 
-def train_model(train_data, val_data, attn_heads=8, output_dims=100, hidden_channels=128, epochs=100):
+def train_model(train_data, val_data, config, epochs=100):
     model = HGTLink(
-        hidden_channels=hidden_channels,
-        out_channels=output_dims,
-        num_heads=attn_heads,
-        num_layers=4,
+        config=config,
         data=train_data,
     )
 
@@ -300,14 +308,17 @@ def train_model(train_data, val_data, attn_heads=8, output_dims=100, hidden_chan
         print(f"Epoch: {epoch:03d}, Val Loss: {total_loss / total_examples:.4f}")
 
     plt.figure()
-    plt.title(f'BCE Loss CPD-KO LP AH={attn_heads} HD={hidden_channels} OD={output_dims}')
+    plt.title(
+        f"BCE Loss CPD-KO LP AH={config.num_heads} HD={config.hidden_channels} OD={config.out_channels} L={config.num_layers}"
+    )
     plt.plot(training_epoch_losses, label="train BCE loss")
     plt.plot(val_epoch_losses, label="val BCE loss")
     plt.ylabel("BCE Loss")
     plt.xlabel("Epoch")
     plt.legend()
+
     plt.savefig(
-        f"../figures/train_losses_heads={attn_heads}_hidden={hidden_channels}_outdims={output_dims}.png"
+        f"../figures/train_losses_heads={config.num_heads}_hidden={config.hidden_channels}_outdims={config.out_channels}_L={config.num_layers}_lin.png"
     )
 
     return model
